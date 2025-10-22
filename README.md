@@ -1,9 +1,9 @@
 ## 生活优选(Life Preference)
 *Personal Development (Backend)*  
-A SpringBoot-based lifestyle service platform implementing merchant reviews, coupon flash sales, friend following, and blogger dynamic push notifications.
+A merchant review platform based on Spring Boot, featuring SMS login, merchant search, flash sale coupons, blogs, friend follows, and Feed stream notifications.
 
-- **Authentication & Security**: Implement login authentication using Redis for shared Session, combined with interceptors for verification
-- **Caching & Performance**: Built Redis-based caching system using Cache Aside pattern with proactive updates and timeout elimination to ensure data consistency and reduce database pressure
-- **Concurrency & Distribution**: Implement distributed locks via Redis to ensure data consistency and thread safety of coupon inventory in high-concurrency scenarios
-- **Asynchronous Messaging**: Implement message queues using Redis's Stream data structure to achieve asynchronous flash sale order placement, improving system response speed and throughput
-- **Advanced Features**: Employed Redis data structures for rich functionalities including BitMap for user check-ins, HyperLogLog for UV statistics to measure website traffic, and GeoHash for nearby merchant searches
+- **Authentication & Security**: Implements shared Session-based login authentication via Redis, validated with interceptors.
+- **Caching & Performance**: Builds a Redis-based caching system using the Cache Aside pattern, with proactive updates and expiration to ensure data consistency and reduce database load.
+- **Concurrency & Distribution**: Uses Redis for distributed locks to maintain data consistency and thread safety during high-concurrency coupon flash sales.
+- **Asynchronous Messaging**: Leverages Redis Streams as a message queue for asynchronous order placement in flash sales, improving response speed and throughput.
+- **Advanced Features**:  Utilizes Redis data structures for diverse functions—BitMap for user check-ins, HyperLogLog for UV statistics to measure traffic, and GEO for locating nearby merchants.
