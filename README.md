@@ -1,5 +1,5 @@
 ## 生活优选(Life Preference)
-*Personal Development (Backend)*  
+ 
 A merchant review platform based on Spring Boot, featuring SMS login, merchant search, flash sale coupons, blogs, friend follows, and Feed stream notifications.
 
 - **Authentication & Security**: Implements shared Session-based login authentication via Redis, validated with interceptors.
