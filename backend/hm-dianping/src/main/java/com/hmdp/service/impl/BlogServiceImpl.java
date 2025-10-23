@@ -6,6 +6,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.ScrollResult;
 import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.Blog;
 import com.hmdp.entity.Follow;
@@ -18,12 +19,11 @@ import com.hmdp.service.IUserService;
 import com.hmdp.utils.SystemConstants;
 import com.hmdp.utils.UserHolder;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.hmdp.utils.RedisConstants.BLOG_LIKED_KEY;
@@ -165,6 +165,54 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         }
         // 返回id
         return Result.ok(blog.getId());
+    }
+
+    @Override
+    public Result queryBlogOfFollow(Long max, Integer offset) {
+        // 获取当前用户
+        Long userId = UserHolder.getUser().getId();
+
+        // 查询收件箱
+        String key = FEED_KEY + userId;
+        Set<ZSetOperations.TypedTuple<String>> typedTuples =
+                stringRedisTemplate.opsForZSet().reverseRangeByScoreWithScores(key, 0, max, offset, 2);
+        // 非空判断
+        if (typedTuples == null || typedTuples.isEmpty()) {
+            return Result.ok();
+        }
+
+        // 解析数据: blogId、minTime、offset
+        List<Long> ids = new ArrayList<>(typedTuples.size());
+        long minTime = 0;
+        int os = 1;
+        for (ZSetOperations.TypedTuple<String> tuple : typedTuples) {
+            ids.add(Long.valueOf(Objects.requireNonNull(tuple.getValue())));
+            long time = Objects.requireNonNull(tuple.getScore()).longValue();
+
+            if (time == minTime) {
+                os += 1;
+            }else {
+                minTime = time;
+                os = 1;
+            }
+        }
+
+        // 查询blog
+        String idStr = StrUtil.join(",", ids);
+        List<Blog> blogList = query().in("id", ids).last("order by field(id," + idStr + ")").list();
+        for (Blog blog : blogList) {
+            // 查询blog相关的用户
+            queryBlogUser(blog);
+            // 查询blog是否被点赞
+            isBlogLiked(blog);
+        }
+        // 封装并返回
+        ScrollResult result = new ScrollResult();
+        result.setList(blogList);
+        result.setMinTime(minTime);
+        result.setOffset(os);
+
+        return Result.ok(result);
     }
 
     private void queryBlogUser(Blog blog) {
